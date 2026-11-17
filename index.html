@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HireHub – Find your next job</title>
+  <meta name="description" content="Search jobs, save favourites, apply online and track your applications.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#" data-tab="jobs">Hire<span>Hub</span></a>
+    <nav class="tabs" aria-label="Main">
+      <button class="tab active" data-tab="jobs">Find jobs</button>
+      <button class="tab" data-tab="saved">Saved <span id="savedCount" class="count">0</span></button>
+      <button class="tab" data-tab="applied">Applications <span id="appCount" class="count">0</span></button>
+    </nav>
+    <button class="btn accent sm" data-open="postModal">Post a job</button>
+  </header>
+
+  <main>
+    <!-- ===== Jobs view ===== -->
+    <section id="view-jobs">
+      <div class="hero">
+        <div class="hero-in">
+          <h1>Find a job that fits your life, not just your resume.</h1>
+          <p>Browse openings from growing companies, apply in minutes and track every application in one place.</p>
+          <form id="searchForm" class="searchbar" role="search">
+            <input id="q" type="search" placeholder="Job title, skill or company" aria-label="Keyword">
+            <select id="loc" aria-label="Location"></select>
+            <button class="btn primary" type="submit">Search jobs</button>
+          </form>
+          <div class="popular"><span>Popular:</span>
+            <button data-tag="React">React</button><button data-tag="Python">Python</button><button data-tag="Data Analyst">Data Analyst</button>
+            <button data-tag="Designer">Designer</button><button data-tag="Intern">Intern</button><button data-tag="Marketing">Marketing</button>
+          </div>
+          <dl id="stats" class="stats"></dl>
+        </div>
+      </div>
+
+      <div class="layout">
+        <aside id="filters" class="filters" aria-label="Filters"></aside>
+        <section class="results">
+          <div class="bar">
+            <strong id="resultCount" aria-live="polite"></strong>
+            <div class="bar-r">
+              <button id="filterBtn" class="btn ghost sm">Filters</button>
+              <select id="sort" aria-label="Sort jobs">
+                <option value="new">Newest first</option>
+                <option value="salary">Highest salary</option>
+              </select>
+            </div>
+          </div>
+          <div id="jobList" class="joblist"></div>
+          <button id="loadMore" class="btn ghost block" data-more hidden>Load more jobs</button>
+        </section>
+      </div>
+    </section>
+
+    <!-- ===== Saved view ===== -->
+    <section id="view-saved" class="page" hidden>
+      <h2>Saved jobs</h2>
+      <div id="savedList" class="joblist"></div>
+    </section>
+
+    <!-- ===== Applications view ===== -->
+    <section id="view-applied" class="page" hidden>
+      <h2>My applications</h2>
+      <ul id="appList" class="apps"></ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <strong>HireHub</strong>
+    <span>A client-side demo job portal. All data stays in your browser (localStorage).</span>
+  </footer>
+
+  <div id="overlay" class="overlay" data-close hidden></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Job details -->
+  <div id="detailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal-box wide">
+      <button class="x" data-close aria-label="Close">✕</button>
+      <div id="detailBody"></div>
+    </div>
+  </div>
+
+  <!-- Apply form -->
+  <div id="applyModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="applyTitle">
+    <div class="modal-box">
+      <button class="x" data-close aria-label="Close">✕</button>
+      <h3 id="applyTitle">Apply</h3>
+      <p id="applyFor" class="muted"></p>
+      <form id="applyForm" novalidate>
+        <input type="hidden" name="jobId">
+        <label>Full name<input name="name" autocomplete="name"><span class="error" data-err="name"></span></label>
+        <div class="two">
+          <label>Email<input name="email" type="email" autocomplete="email"><span class="error" data-err="email"></span></label>
+          <label>Mobile number<input name="phone" inputmode="numeric" maxlength="10" autocomplete="tel"><span class="error" data-err="phone"></span></label>
+        </div>
+        <label>Resume (PDF or Word, max 2 MB)<input name="resume" type="file" accept=".pdf,.doc,.docx"><span class="error" data-err="resume"></span></label>
+        <label>Cover note (optional)<textarea name="note" rows="3" maxlength="500" placeholder="Tell the employer why you are a good fit"></textarea></label>
+        <button class="btn primary block" type="submit">Submit application</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Post a job -->
+  <div id="postModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="postTitle">
+    <div class="modal-box wide">
+      <button class="x" data-close aria-label="Close">✕</button>
+      <h3 id="postTitle">Post a job</h3>
+      <form id="postForm" novalidate>
+        <div class="two">
+          <label>Job title<input name="title"><span class="error" data-err="title"></span></label>
+          <label>Company name<input name="company"><span class="error" data-err="company"></span></label>
+        </div>
+        <div class="three">
+          <label>Location<select name="city" id="postCity"></select></label>
+          <label>Job type<select name="type" id="postType"></select></label>
+          <label>Work mode<select name="mode" id="postMode"></select></label>
+        </div>
+        <label>Category<select name="category" id="postCat"></select></label>
+        <div class="four">
+          <label>Min exp (yrs)<input name="expMin" type="number" min="0" max="30" value="0"></label>
+          <label>Max exp (yrs)<input name="expMax" type="number" min="0" max="30" value="2"></label>
+          <label>Min salary (LPA)<input name="salMin" type="number" min="0" step="0.1" value="4"></label>
+          <label>Max salary (LPA)<input name="salMax" type="number" min="0" step="0.1" value="8"></label>
+        </div>
+        <span class="error" data-err="range"></span>
+        <label>Skills (comma separated)<input name="skills" placeholder="e.g. React, SQL, Communication"><span class="error" data-err="skills"></span></label>
+        <label>Job summary<textarea name="summary" rows="3"></textarea><span class="error" data-err="summary"></span></label>
+        <button class="btn primary block" type="submit">Publish job</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
